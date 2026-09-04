@@ -25,6 +25,8 @@
             --danger-bg: rgba(239, 68, 68, 0.12);
             --warning: #F59E0B;
             --warning-bg: rgba(245, 158, 11, 0.12);
+            --unbind-btn: #EAB308;
+            --unbind-hover: #CA8A04;
             --radius: 12px;
             --font-mono: 'JetBrains Mono', monospace;
         }
@@ -42,7 +44,7 @@
 
         .container {
             width: 100%;
-            max-width: 1120px;
+            max-width: 1160px;
         }
 
         /* Header */
@@ -122,7 +124,8 @@
         }
 
         .stat-card.green::before { background: var(--success); }
-        .stat-card.amber::before { background: var(--warning); }
+        .stat-card.amber::before { background: var(--unbind-btn); }
+        .stat-card.purple::before { background: #8B5CF6; }
 
         .stat-label {
             font-size: 12px;
@@ -144,6 +147,7 @@
             display: grid;
             grid-template-columns: 360px 1fr;
             gap: 24px;
+            margin-bottom: 24px;
         }
 
         @media (max-width: 900px) {
@@ -155,6 +159,7 @@
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 24px;
+            margin-bottom: 24px;
         }
 
         .card-header {
@@ -237,8 +242,8 @@
         .btn-secondary:hover { background: var(--bg-card-hover); }
 
         .btn-sm {
-            padding: 5px 10px;
-            font-size: 11px;
+            padding: 6px 12px;
+            font-size: 12px;
             border-radius: 6px;
         }
 
@@ -251,6 +256,22 @@
         .btn-danger:hover {
             background: var(--danger);
             color: white;
+        }
+
+        .btn-unbind {
+            background: var(--unbind-btn);
+            color: #000000;
+            font-weight: 700;
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 12px;
+            border: none;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .btn-unbind:hover {
+            background: var(--unbind-hover);
         }
 
         /* Key List Table */
@@ -289,18 +310,18 @@
         .key-code {
             font-family: var(--font-mono);
             font-weight: 600;
-            color: #60A5FA;
-            background: rgba(59, 130, 246, 0.08);
+            color: #38BDF8;
+            background: rgba(56, 189, 248, 0.08);
             padding: 4px 8px;
             border-radius: 6px;
             font-size: 12px;
             display: inline-block;
             cursor: pointer;
-            border: 1px solid rgba(59, 130, 246, 0.2);
+            border: 1px solid rgba(56, 189, 248, 0.2);
         }
 
         .key-code:hover {
-            border-color: #60A5FA;
+            border-color: #38BDF8;
         }
 
         .badge {
@@ -408,7 +429,7 @@
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">
             The key has been saved to your Cloudflare registry and is now active globally.
         </p>
-        <div id="generatedKeyDisplay" style="font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: #60A5FA; background: rgba(59, 130, 246, 0.12); border: 1px solid rgba(59, 130, 246, 0.3); padding: 14px; border-radius: 8px; margin-bottom: 20px; user-select: all;">
+        <div id="generatedKeyDisplay" style="font-family: var(--font-mono); font-size: 18px; font-weight: 700; color: #38BDF8; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); padding: 14px; border-radius: 8px; margin-bottom: 20px; user-select: all;">
             INSIGN-XXXX-XXXX-XXXX-XXXX
         </div>
         <div style="display: flex; gap: 10px;">
@@ -446,12 +467,49 @@
                 <div class="stat-value" id="statActive">0</div>
             </div>
             <div class="stat-card amber">
-                <div class="stat-label">Revoked / Expired</div>
+                <div class="stat-label">Bound Machines (HWIDs)</div>
+                <div class="stat-value" id="statBound">0</div>
+            </div>
+            <div class="stat-card purple">
+                <div class="stat-label">Revoked / Inactive</div>
                 <div class="stat-value" id="statRevoked">0</div>
             </div>
         </div>
 
-        <!-- Main Workspace -->
+        <!-- 1. Active Bound Machines (HWIDs) Section -->
+        <div class="card" style="overflow: hidden;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <div class="card-title" style="font-size: 18px;">Active Bound Machines (HWIDs)</div>
+                    <div class="card-subtitle">Devices currently locked to a license key. Unbinding frees the key for use on a new computer.</div>
+                </div>
+                <span id="boundCountBadge" style="font-size: 12px; font-weight: 600; background: rgba(234, 179, 8, 0.15); color: var(--unbind-btn); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(234, 179, 8, 0.3);">
+                    0 Machines
+                </span>
+            </div>
+
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>LICENSE KEY</th>
+                            <th>HWID (HARDWARE ID)</th>
+                            <th>MACHINE NAME</th>
+                            <th>OS / PLATFORM</th>
+                            <th>LAST PULSE</th>
+                            <th style="text-align: right;">ACTION</th>
+                        </tr>
+                    </thead>
+                    <tbody id="boundTableBody">
+                        <tr>
+                            <td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No machines currently bound.</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 2. Workspace: Generate Key Form & Full Registry -->
         <div class="workspace">
             <!-- Left: Generate Key Form -->
             <div class="card">
@@ -497,8 +555,8 @@
             <!-- Right: Registered Keys Table -->
             <div class="card" style="overflow: hidden;">
                 <div class="card-header">
-                    <div class="card-title">🔑 Active License Registry</div>
-                    <div class="card-subtitle">Real-time licenses registered on Cloudflare.</div>
+                    <div class="card-title">🔑 All License Keys</div>
+                    <div class="card-subtitle">All serial keys issued on your Cloudflare licensing server.</div>
                 </div>
 
                 <div class="table-wrap">
@@ -620,12 +678,71 @@
         }
 
         function renderDashboard() {
-            const keysObj = currentRegistry.KEYS || currentRegistry;
+            const keysObj = currentRegistry.KEYS || {};
+            const boundObj = currentRegistry.BOUND_MACHINES || {};
+
+            // 1. Render Bound Machines Table
+            const boundTbody = document.getElementById('boundTableBody');
+            boundTbody.innerHTML = '';
+
+            // Derive bound machines from BOUND_MACHINES or directly from keys that have a specific HWID bound!
+            const boundList = [];
+
+            // Add from explicit BOUND_MACHINES dict
+            Object.entries(boundObj).forEach(([hwid, info]) => {
+                boundList.push({
+                    key: info.license_key || 'UNKNOWN',
+                    hwid: hwid,
+                    machine: info.machine_name || 'DESKTOP-CLIENT',
+                    os: info.os || 'nt_win32',
+                    last_pulse: info.last_pulse || info.activated_at || new Date().toLocaleString()
+                });
+            });
+
+            // Also check KEYS for any bound HWID not already listed
+            Object.entries(keysObj).forEach(([key, info]) => {
+                const hwid = (info.hwid || '').trim().toUpperCase();
+                if (hwid && hwid !== 'ANY' && hwid !== '*' && hwid !== 'UNBOUND') {
+                    const alreadyIn = boundList.some(b => b.hwid === hwid && b.key === key);
+                    if (!alreadyIn) {
+                        boundList.push({
+                            key: key,
+                            hwid: hwid,
+                            machine: info.machine_name || (info.client ? info.client + '-PC' : 'WIN-PC'),
+                            os: info.os || 'nt_win32',
+                            last_pulse: info.last_pulse || info.created_at || new Date().toLocaleString()
+                        });
+                    }
+                }
+            });
+
+            document.getElementById('statBound').textContent = boundList.length;
+            document.getElementById('boundCountBadge').textContent = `${boundList.length} Machine(s)`;
+
+            if (boundList.length === 0) {
+                boundTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No active bound machines found. Keys with ANY are ready for new activations.</td></tr>';
+            } else {
+                boundList.forEach(item => {
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td><span class="key-code" onclick="copyText('${item.key}')" title="Click to copy">${item.key}</span></td>
+                        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-main); font-weight: 500;">${item.hwid}</td>
+                        <td style="font-weight: 600; color: var(--text-main);">${item.machine}</td>
+                        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">${item.os}</td>
+                        <td style="font-size: 12px; color: var(--text-muted);">${item.last_pulse}</td>
+                        <td style="text-align: right;">
+                            <button class="btn-unbind" onclick="unbindHWID('${item.key}', '${item.hwid}')">Unbind HWID</button>
+                        </td>
+                    `;
+                    boundTbody.appendChild(tr);
+                });
+            }
+
+            // 2. Render All License Keys Table
             const tbody = document.getElementById('keysTableBody');
             tbody.innerHTML = '';
 
             let total = 0, active = 0, revoked = 0;
-
             const entries = Object.entries(keysObj).reverse(); // Newest first
 
             if (entries.length === 0) {
@@ -658,6 +775,37 @@
             document.getElementById('statTotal').textContent = total;
             document.getElementById('statActive').textContent = active;
             document.getElementById('statRevoked').textContent = revoked;
+        }
+
+        async function unbindHWID(key, hwid) {
+            if (!confirm(`Are you sure you want to UNBIND machine ${hwid} from license ${key}?\n\nThe key will be reset to 'ANY' so it can be bound to another computer.`)) return;
+
+            const keysObj = currentRegistry.KEYS || {};
+            const boundObj = currentRegistry.BOUND_MACHINES || {};
+
+            // Reset key's HWID to ANY
+            if (keysObj[key]) {
+                keysObj[key].hwid = 'ANY';
+            }
+
+            // Remove from BOUND_MACHINES
+            if (boundObj[hwid]) {
+                delete boundObj[hwid];
+            }
+
+            const updatedRegistry = {
+                "KEYS": keysObj,
+                "BOUND_MACHINES": boundObj
+            };
+
+            try {
+                await commitToGitHub(updatedRegistry, `Unbind HWID ${hwid} from license ${key}`);
+                currentRegistry = updatedRegistry;
+                renderDashboard();
+                showToast(`HWID ${hwid} successfully unbound!`);
+            } catch (err) {
+                alert('Failed to unbind HWID: ' + err.message);
+            }
         }
 
         function toggleCustomDays() {
@@ -693,7 +841,7 @@
             btn.textContent = 'Publishing to Cloudflare...';
 
             generatedKey = generateKeyString();
-            const keysObj = currentRegistry.KEYS || currentRegistry;
+            const keysObj = currentRegistry.KEYS || {};
             keysObj[generatedKey] = {
                 status: 'active',
                 hwid: hwid,
@@ -702,7 +850,10 @@
                 created_at: new Date().toISOString()
             };
 
-            const updatedRegistry = { "KEYS": keysObj };
+            const updatedRegistry = {
+                "KEYS": keysObj,
+                "BOUND_MACHINES": currentRegistry.BOUND_MACHINES || {}
+            };
 
             try {
                 await commitToGitHub(updatedRegistry, `Add license key for ${client}`);
@@ -726,13 +877,16 @@
         }
 
         async function toggleKeyStatus(key) {
-            const keysObj = currentRegistry.KEYS || currentRegistry;
+            const keysObj = currentRegistry.KEYS || {};
             if (!keysObj[key]) return;
 
             const isCurrentlyActive = (keysObj[key].status || 'active').toLowerCase() === 'active';
             keysObj[key].status = isCurrentlyActive ? 'revoked' : 'active';
 
-            const updatedRegistry = { "KEYS": keysObj };
+            const updatedRegistry = {
+                "KEYS": keysObj,
+                "BOUND_MACHINES": currentRegistry.BOUND_MACHINES || {}
+            };
             const actionWord = isCurrentlyActive ? 'Revoke' : 'Restore';
 
             try {
@@ -748,10 +902,13 @@
         async function deleteKey(key) {
             if (!confirm(`Are you sure you want to permanently delete key: ${key}?`)) return;
 
-            const keysObj = currentRegistry.KEYS || currentRegistry;
+            const keysObj = currentRegistry.KEYS || {};
             delete keysObj[key];
 
-            const updatedRegistry = { "KEYS": keysObj };
+            const updatedRegistry = {
+                "KEYS": keysObj,
+                "BOUND_MACHINES": currentRegistry.BOUND_MACHINES || {}
+            };
 
             try {
                 await commitToGitHub(updatedRegistry, `Delete license key ${key}`);
