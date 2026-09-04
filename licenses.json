@@ -85,6 +85,13 @@
             "expires": "2026-10-04",
             "client": "omarali2",
             "created_at": "2026-09-04T17:43:31.949Z"
+        },
+        "INSIGN-RAP3-N25V-5V4G-E7YQ": {
+            "status": "active",
+            "hwid": "ANY",
+            "expires": "2026-10-04",
+            "client": "porag",
+            "created_at": "2026-09-04T17:43:47.330Z"
         }
     },
     "BOUND_MACHINES": {
