@@ -92,6 +92,13 @@
             "expires": "2026-10-04",
             "client": "porag",
             "created_at": "2026-09-04T17:43:47.330Z"
+        },
+        "INSIGN-3J4S-R5QX-STFH-MSNU": {
+            "status": "active",
+            "hwid": "ANY",
+            "expires": "2026-10-04",
+            "client": "tamim",
+            "created_at": "2026-09-04T17:44:49.059Z"
         }
     },
     "BOUND_MACHINES": {
