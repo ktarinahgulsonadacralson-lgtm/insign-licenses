@@ -113,6 +113,13 @@
             "expires": "2026-10-04",
             "client": "milon",
             "created_at": "2026-09-04T17:45:53.385Z"
+        },
+        "INSIGN-SFCH-M78N-LG9J-YMNM": {
+            "status": "active",
+            "hwid": "ANY",
+            "expires": "2026-10-04",
+            "client": "ayub",
+            "created_at": "2026-09-04T17:46:08.446Z"
         }
     },
     "BOUND_MACHINES": {
