@@ -1,0 +1,25 @@
+{
+    "KEYS": {
+        "INSIGN-TJP2-DNKU-DLSV-YV77": {
+            "status": "active",
+            "hwid": "INSIGN-FDA8-2879-F27F-09AE",
+            "expires": "lifetime",
+            "client": "Admin PC (Lifetime)",
+            "created_at": "2026-09-04 22:14:58"
+        },
+        "INSIGN-MYEJ-E38Q-68E9-RBFT": {
+            "status": "active",
+            "hwid": "ANY",
+            "expires": "lifetime",
+            "client": "Demo User 1 (Lifetime)",
+            "created_at": "2026-09-04 22:14:59"
+        },
+        "INSIGN-MMVS-XUPC-BENN-72AK": {
+            "status": "active",
+            "hwid": "ANY",
+            "expires": "2026-10-04",
+            "client": "Trial User (30 Days)",
+            "created_at": "2026-09-04 22:14:59"
+        }
+    }
+}
