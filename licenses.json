@@ -7,7 +7,9 @@
             "client": "Admin PC (Lifetime)",
             "machine_name": "WIN-9JR8PSD20DB",
             "os": "nt_win32",
-            "created_at": "2026-09-04 22:14:58"
+            "created_at": "2026-09-04 22:14:58",
+            "total_sent": 25,
+            "last_sent_at": "2026-09-05T12:00:00Z"
         },
         "INSIGN-MYEJ-E38Q-68E9-RBFT": {
             "status": "active",
