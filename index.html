@@ -127,6 +127,88 @@
         .stat-card.amber::before { background: var(--unbind-btn); }
         .stat-card.purple::before { background: #8B5CF6; }
 
+        .stat-card.cyan::before { background: #06B6D4; }
+        .stat-card.gold::before { background: #F59E0B; }
+        .stat-card.emerald::before { background: #10B981; }
+
+        .leaderboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+            margin-top: 16px;
+        }
+        .leader-card {
+            background: #181C2A;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+        .leader-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--primary);
+        }
+        .leader-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .leader-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 800;
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .rank-1 { background: #FEF08A; color: #854D0E; }
+        .rank-2 { background: #E2E8F0; color: #334155; }
+        .rank-3 { background: #FED7AA; color: #9A3412; }
+        .leader-name {
+            font-weight: 700;
+            font-size: 15px;
+            color: var(--text-main);
+        }
+        .leader-count {
+            font-size: 20px;
+            font-weight: 800;
+            color: #38BDF8;
+            display: flex;
+            align-items: baseline;
+            gap: 4px;
+        }
+        .leader-count span {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        .progress-track {
+            height: 6px;
+            background: #23283C;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #3B82F6, #10B981);
+            border-radius: 6px;
+            transition: width 0.4s ease;
+        }
+        .leader-footer {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+
         .stat-label {
             font-size: 12px;
             font-weight: 600;
@@ -458,6 +540,14 @@
 
         <!-- Stats Grid -->
         <div class="stats-grid">
+            <div class="stat-card emerald">
+                <div class="stat-label">Total Documents Sent</div>
+                <div class="stat-value" id="statTotalSent" style="color: #34D399;">0</div>
+            </div>
+            <div class="stat-card cyan">
+                <div class="stat-label">Top Sender</div>
+                <div class="stat-value" id="statTopSender" style="font-size: 18px; line-height: 1.4; color: #38BDF8;">-</div>
+            </div>
             <div class="stat-card">
                 <div class="stat-label">Total Keys</div>
                 <div class="stat-value" id="statTotal">0</div>
@@ -473,6 +563,28 @@
             <div class="stat-card purple">
                 <div class="stat-label">Revoked / Inactive</div>
                 <div class="stat-value" id="statRevoked">0</div>
+            </div>
+        </div>
+
+                <!-- Live Team Sent Volume & Leaderboard Section -->
+        <div class="card" style="overflow: hidden;">
+            <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <div class="card-title" style="font-size: 18px;">📊 Live Team Production & Sent Report</div>
+                    <div class="card-subtitle">Real-time volume report of documents sent by each license holder and machine.</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <label style="font-size: 12px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; cursor: pointer;">
+                        <input type="checkbox" id="autoRefreshCheck" checked onchange="toggleAutoRefresh(this)">
+                        🔄 Auto-Refresh (20s)
+                    </label>
+                    <span id="leaderboardBadge" style="font-size: 12px; font-weight: 600; background: rgba(56, 189, 248, 0.15); color: #38BDF8; padding: 4px 12px; border-radius: 20px; border: 1px solid rgba(56, 189, 248, 0.3);">
+                        0 Total Sends
+                    </span>
+                </div>
+            </div>
+            <div id="leaderboardContainer" class="leaderboard-grid">
+                <div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px;">Loading sent reports...</div>
             </div>
         </div>
 
@@ -493,9 +605,10 @@
                     <thead>
                         <tr>
                             <th>LICENSE KEY</th>
+                            <th>CLIENT / USER</th>
                             <th>HWID (HARDWARE ID)</th>
-                            <th>MACHINE NAME</th>
-                            <th>OS / PLATFORM</th>
+                            <th>MACHINE</th>
+                            <th style="text-align: center;">TOTAL SENT</th>
                             <th>LAST PULSE</th>
                             <th style="text-align: right;">ACTION</th>
                         </tr>
@@ -565,6 +678,7 @@
                             <tr>
                                 <th>Serial Key</th>
                                 <th>Client</th>
+                                <th style="text-align: center;">Total Sent</th>
                                 <th>HWID Lock</th>
                                 <th>Expires</th>
                                 <th>Status</th>
@@ -677,9 +791,128 @@
             }
         }
 
+        let autoRefreshInterval = null;
+
+        function toggleAutoRefresh(cb) {
+            if (cb.checked) {
+                startAutoRefresh();
+            } else {
+                clearInterval(autoRefreshInterval);
+            }
+        }
+
+        function startAutoRefresh() {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(() => {
+                const token = localStorage.getItem('insign_gh_token');
+                if (token && document.getElementById('mainApp').style.display !== 'none') {
+                    refreshLicensesSilently();
+                }
+            }, 20000);
+        }
+
+        async function refreshLicensesSilently() {
+            const token = localStorage.getItem('insign_gh_token');
+            if (!token) return;
+            try {
+                const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}?t=${Date.now()}`, {
+                    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github.v3+json' }
+                });
+                if (res.ok) {
+                    const data = await res.json();
+                    currentFileSha = data.sha;
+                    const contentStr = decodeURIComponent(escape(atob(data.content)));
+                    currentRegistry = JSON.parse(contentStr);
+                    renderDashboard();
+                }
+            } catch(e) {}
+        }
+
         function renderDashboard() {
             const keysObj = currentRegistry.KEYS || {};
             const boundObj = currentRegistry.BOUND_MACHINES || {};
+
+            // Calculate Total Sent & Leaderboard
+            let globalTotalSent = 0;
+            const leaders = [];
+
+            Object.entries(keysObj).forEach(([key, info]) => {
+                const sent = parseInt(info.total_sent || 0, 10);
+                globalTotalSent += sent;
+                leaders.push({
+                    key: key,
+                    client: info.client || 'User',
+                    total_sent: sent,
+                    last_sent: info.last_sent_at || info.created_at || '',
+                    status: (info.status || 'active').toLowerCase(),
+                    hwid: info.hwid || 'ANY'
+                });
+            });
+
+            // Sort leaderboard by sent descending
+            leaders.sort((a, b) => b.total_sent - a.total_sent);
+
+            // Update Top KPIs
+            document.getElementById('statTotalSent').textContent = globalTotalSent.toLocaleString();
+            document.getElementById('leaderboardBadge').textContent = `${globalTotalSent.toLocaleString()} Total Sends`;
+
+            if (leaders.length > 0 && leaders[0].total_sent > 0) {
+                document.getElementById('statTopSender').textContent = `${leaders[0].client} (${leaders[0].total_sent.toLocaleString()})`;
+            } else {
+                document.getElementById('statTopSender').textContent = "None yet";
+            }
+
+            // Render Leaderboard Cards
+            const leaderContainer = document.getElementById('leaderboardContainer');
+            leaderContainer.innerHTML = '';
+
+            if (leaders.length === 0) {
+                leaderContainer.innerHTML = '<div style="grid-column: 1 / -1; text-align: center; color: var(--text-muted); padding: 24px;">No team members found.</div>';
+            } else {
+                leaders.slice(0, 12).forEach((item, idx) => {
+                    const rankClass = idx === 0 ? 'rank-1' : idx === 1 ? 'rank-2' : idx === 2 ? 'rank-3' : '';
+                    const rankMedal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `#${idx + 1}`;
+                    const pct = globalTotalSent > 0 ? Math.round((item.total_sent / globalTotalSent) * 100) : 0;
+
+                    let lastActiveText = 'No activity yet';
+                    if (item.last_sent) {
+                        try {
+                            const d = new Date(item.last_sent);
+                            lastActiveText = d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                        } catch(e) {
+                            lastActiveText = item.last_sent;
+                        }
+                    }
+
+                    const card = document.createElement('div');
+                    card.className = 'leader-card';
+                    card.innerHTML = `
+                        <div class="leader-header">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="leader-rank ${rankClass}">${rankMedal}</div>
+                                <div>
+                                    <div class="leader-name">${item.client}</div>
+                                    <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">${item.key.substring(0, 16)}...</div>
+                                </div>
+                            </div>
+                            <span class="badge ${item.status === 'active' ? 'badge-active' : 'badge-revoked'}" style="font-size: 10px; padding: 2px 8px;">
+                                ${item.status === 'active' ? 'Active' : 'Revoked'}
+                            </span>
+                        </div>
+                        <div class="leader-count">
+                            ${item.total_sent.toLocaleString()} <span>documents sent</span>
+                        </div>
+                        <div class="progress-track">
+                            <div class="progress-bar" style="width: ${Math.max(pct, item.total_sent > 0 ? 5 : 0)}%;"></div>
+                        </div>
+                        <div class="leader-footer">
+                            <span>Share: ${pct}%</span>
+                            <span>Last: ${lastActiveText}</span>
+                        </div>
+                    `;
+                    leaderContainer.appendChild(card);
+                });
+            }
 
             // 1. Render Bound Machines Table
             const boundTbody = document.getElementById('boundTableBody');
@@ -707,10 +940,12 @@
                     if (!alreadyIn) {
                         boundList.push({
                             key: key,
+                            client: info.client || 'User',
                             hwid: hwid,
                             machine: info.machine_name || (info.client ? info.client + '-PC' : 'WIN-PC'),
                             os: info.os || 'nt_win32',
-                            last_pulse: info.last_pulse || info.created_at || new Date().toLocaleString()
+                            total_sent: parseInt(info.total_sent || 0, 10),
+                            last_pulse: info.last_pulse || info.last_sent_at || info.created_at || new Date().toLocaleString()
                         });
                     }
                 }
@@ -726,9 +961,10 @@
                     const tr = document.createElement('tr');
                     tr.innerHTML = `
                         <td><span class="key-code" onclick="copyText('${item.key}')" title="Click to copy">${item.key}</span></td>
+                        <td style="font-weight: 600; color: var(--text-main);">${item.client}</td>
                         <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-main); font-weight: 500;">${item.hwid}</td>
-                        <td style="font-weight: 600; color: var(--text-main);">${item.machine}</td>
-                        <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-muted);">${item.os}</td>
+                        <td style="font-weight: 600; color: var(--text-muted);">${item.machine}</td>
+                        <td style="text-align: center;"><span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-weight: 700; padding: 4px 10px;">${item.total_sent.toLocaleString()} Sent</span></td>
                         <td style="font-size: 12px; color: var(--text-muted);">${item.last_pulse}</td>
                         <td style="text-align: right;">
                             <button class="btn-unbind" onclick="unbindHWID('${item.key}', '${item.hwid}')">Unbind HWID</button>
@@ -755,9 +991,11 @@
                 if (isAct) active++; else revoked++;
 
                 const tr = document.createElement('tr');
+                const sentCount = parseInt(info.total_sent || 0, 10);
                 tr.innerHTML = `
                     <td><span class="key-code" onclick="copyText('${key}')" title="Click to copy">${key}</span></td>
                     <td style="font-weight: 600;">${info.client || 'User'}</td>
+                    <td style="text-align: center;"><span class="badge" style="background: rgba(59, 130, 246, 0.15); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.3); font-weight: 700; padding: 4px 10px;">${sentCount.toLocaleString()} Sent</span></td>
                     <td style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted);">${info.hwid || 'ANY'}</td>
                     <td>${info.expires || 'Lifetime'}</td>
                     <td><span class="badge ${isAct ? 'badge-active' : 'badge-revoked'}">${isAct ? 'Active' : 'Revoked'}</span></td>
