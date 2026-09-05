@@ -923,11 +923,15 @@
 
             // Add from explicit BOUND_MACHINES dict
             Object.entries(boundObj).forEach(([hwid, info]) => {
+                const keyInfo = keysObj[info.license_key] || {};
+                const sentNum = parseInt(info.total_sent ?? keyInfo.total_sent ?? 0, 10);
                 boundList.push({
                     key: info.license_key || 'UNKNOWN',
+                    client: info.client || keyInfo.client || 'User',
                     hwid: hwid,
                     machine: info.machine_name || 'DESKTOP-CLIENT',
                     os: info.os || 'nt_win32',
+                    total_sent: isNaN(sentNum) ? 0 : sentNum,
                     last_pulse: info.last_pulse || info.activated_at || new Date().toLocaleString()
                 });
             });
@@ -938,13 +942,14 @@
                 if (hwid && hwid !== 'ANY' && hwid !== '*' && hwid !== 'UNBOUND') {
                     const alreadyIn = boundList.some(b => b.hwid === hwid && b.key === key);
                     if (!alreadyIn) {
+                        const sentNum = parseInt(info.total_sent ?? 0, 10);
                         boundList.push({
                             key: key,
                             client: info.client || 'User',
                             hwid: hwid,
                             machine: info.machine_name || (info.client ? info.client + '-PC' : 'WIN-PC'),
                             os: info.os || 'nt_win32',
-                            total_sent: parseInt(info.total_sent || 0, 10),
+                            total_sent: isNaN(sentNum) ? 0 : sentNum,
                             last_pulse: info.last_pulse || info.last_sent_at || info.created_at || new Date().toLocaleString()
                         });
                     }
@@ -955,16 +960,17 @@
             document.getElementById('boundCountBadge').textContent = `${boundList.length} Machine(s)`;
 
             if (boundList.length === 0) {
-                boundTbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 24px;">No active bound machines found. Keys with ANY are ready for new activations.</td></tr>';
+                boundTbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--text-muted); padding: 24px;">No active bound machines found. Keys with ANY are ready for new activations.</td></tr>';
             } else {
                 boundList.forEach(item => {
                     const tr = document.createElement('tr');
+                    const sentDisplay = (item.total_sent || 0).toLocaleString();
                     tr.innerHTML = `
                         <td><span class="key-code" onclick="copyText('${item.key}')" title="Click to copy">${item.key}</span></td>
-                        <td style="font-weight: 600; color: var(--text-main);">${item.client}</td>
+                        <td style="font-weight: 600; color: var(--text-main);">${item.client || 'User'}</td>
                         <td style="font-family: var(--font-mono); font-size: 12px; color: var(--text-main); font-weight: 500;">${item.hwid}</td>
                         <td style="font-weight: 600; color: var(--text-muted);">${item.machine}</td>
-                        <td style="text-align: center;"><span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-weight: 700; padding: 4px 10px;">${item.total_sent.toLocaleString()} Sent</span></td>
+                        <td style="text-align: center;"><span class="badge" style="background: rgba(16, 185, 129, 0.15); color: #34D399; font-weight: 700; padding: 4px 10px;">${sentDisplay} Sent</span></td>
                         <td style="font-size: 12px; color: var(--text-muted);">${item.last_pulse}</td>
                         <td style="text-align: right;">
                             <button class="btn-unbind" onclick="unbindHWID('${item.key}', '${item.hwid}')">Unbind HWID</button>
@@ -1085,6 +1091,7 @@
                 hwid: hwid,
                 expires: expires,
                 client: client,
+                total_sent: 0,
                 created_at: new Date().toISOString()
             };
 
